@@ -15,13 +15,20 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Company',
+            name="Company",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('company_name', models.CharField(max_length=255)),
-                ('description', models.TextField()),
-                ('number_of_employees', models.PositiveIntegerField()),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='companies', to=settings.AUTH_USER_MODEL)),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("company_name", models.CharField(max_length=255)),
+                ("description", models.TextField()),
+                ("number_of_employees", models.PositiveIntegerField()),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="companies",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]
