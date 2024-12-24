@@ -53,7 +53,7 @@ class CreateCompanyView(generics.CreateAPIView):
 
         # Render HTML template for the message
         message = render_to_string(
-            "/home/pamela/Desktop/Development/company_app/company/templates/confirmation_email.html",
+            "confirmation_email.html",
             {"user": user, "company": company},
         )
 
