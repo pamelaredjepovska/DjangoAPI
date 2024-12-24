@@ -11,5 +11,5 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # Include the company app urls.py here
-    path('', include('company.urls'))
+    path('api/company/', include('company.urls'))
 ]
