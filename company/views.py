@@ -62,6 +62,6 @@ class CreateCompanyView(generics.CreateAPIView):
             subject="New Company Created",
             message=message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.DEFAULT_TO_EMAIL],
+            recipient_list=[user.email] if user.email else [settings.DEFAULT_TO_EMAIL],
             html_message=message,
         )
