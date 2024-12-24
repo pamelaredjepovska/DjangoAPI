@@ -2,9 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 
 from django.conf import settings
+
+from company.models import Company
 from .serializers import CompanyListSerializer
 from rest_framework.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -65,3 +68,30 @@ class CreateCompanyView(generics.CreateAPIView):
             recipient_list=[user.email] if user.email else [settings.DEFAULT_TO_EMAIL],
             html_message=message,
         )
+
+
+# Custom Pagination Class
+class CompanyPagination(PageNumberPagination):
+    page_size = 5  # Define how many companies per page
+    page_size_query_param = "page_size"
+    max_page_size = 100  # Optional: limit the max page size
+
+
+# View to list all companies owned by the authenticated user
+class ListUserCompaniesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Get all companies owned by the authenticated user
+        user = request.user
+        companies = Company.objects.filter(owner=user)
+
+        # Paginate the companies
+        paginator = CompanyPagination()
+        paginated_companies = paginator.paginate_queryset(companies, request)
+
+        # Serialize the data, send JSON format as a response
+        serializer = CompanyListSerializer(paginated_companies, many=True)
+
+        # Return paginated response
+        return paginator.get_paginated_response(serializer.data)
