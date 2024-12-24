@@ -5,5 +5,5 @@ urlpatterns = [
     # A protected test route that requires authentication
     path("api/protected/", ProtectedView.as_view(), name="protected_view"),
     # A route that allows the user to create a company record
-    path("", CreateCompanyView.as_view(), name="create_company"),
+    path("create/", CreateCompanyView.as_view(), name="create_company"),
 ]
