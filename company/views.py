@@ -86,6 +86,27 @@ class ListUserCompaniesView(APIView):
         user = request.user
         companies = Company.objects.filter(owner=user)
 
+        # Get ordering parameter from the request
+        ordering = request.query_params.get("ordering", None)
+
+        # If an ordering parameter is provided, validate and apply it
+        if ordering:
+            # Ensure that only valid fields are used for ordering
+            valid_ordering_fields = [
+                "company_name",
+                "description",
+                "number_of_employees",
+            ]
+            if ordering.lstrip("-") not in valid_ordering_fields:
+                raise ValidationError(
+                    {
+                        "error": f"Invalid ordering field. Valid fields are: {', '.join(valid_ordering_fields)}."
+                    }
+                )
+
+            # Apply ordering
+            companies = companies.order_by(ordering)
+
         # Paginate the companies
         paginator = CompanyPagination()
         paginated_companies = paginator.paginate_queryset(companies, request)
