@@ -1,5 +1,10 @@
-venv/
+# Ignore virtual environment and dependencies
+.venv
+.env
+
+# Ignore Python bytecode files
 *.pyc
 __pycache__/
+
+# Ignore database file
 db.sqlite3
-.env
