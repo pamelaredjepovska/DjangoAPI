@@ -1,15 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 
 from django.conf import settings
 
 from company.models import Company
-from .serializers import CompanyListSerializer
-from rest_framework.exceptions import ValidationError
+from .serializers import CompanyListSerializer, CompanyUpdateSerializer
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
@@ -23,7 +24,7 @@ class ProtectedView(APIView):
 
 
 # View for creating company records
-class CreateCompanyView(generics.CreateAPIView):
+class CreateCompanyView(CreateAPIView):
     serializer_class = CompanyListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -116,3 +117,38 @@ class ListUserCompaniesView(APIView):
 
         # Return paginated response
         return paginator.get_paginated_response(serializer.data)
+
+
+# View to update the company record (only number_of_employees)
+class UpdateCompanyView(UpdateAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanyUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Ensure the user can only update their own company
+        company = super().get_object()
+        if company.owner != self.request.user:
+            raise PermissionDenied("You do not have permission to update this company.")
+        return company
+
+    def patch(self, request, *args, **kwargs):
+        # First, check permissions by calling `get_object`
+        self.get_object()
+
+        # Validate if the request has a JSON body
+        if not request.data:
+            return Response(
+                {"error": "Request body is empty. Please provide valid data."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate if the request contains only the allowed field 'number_of_employees'
+        if set(request.data.keys()) != {"number_of_employees"}:
+            return Response(
+                {"error": "Only 'number_of_employees' field can be updated."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Perform partial update on the database relation
+        return super().patch(request, *args, **kwargs)
