@@ -172,12 +172,10 @@ class RetrieveUserCompanyView(RetrieveAPIView):
     A view to retrieve a specific company record owned by the authenticated user.
 
     Attributes:
-        queryset (QuerySet): The base queryset for company records.
         serializer_class (CompanyListSerializer): Serializer used for retrieving company details.
         permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
-    queryset = Company.objects.all()
     serializer_class = CompanyListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -192,8 +190,11 @@ class RetrieveUserCompanyView(RetrieveAPIView):
             Company: The company object owned by the authenticated user.
         """
 
-        # Retrieve the company object
-        company = super().get_object()
+        # Try to fetch company by ID
+        try:
+            company = Company.objects.get(id=self.kwargs["pk"])
+        except Company.DoesNotExist:
+            raise NotFound({"error": "Company not found."})
 
         # Ensure the authenticated user is the owner of the company
         if company.owner != self.request.user:
