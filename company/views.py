@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, UpdateAPIView, RetrieveAPIView
 
 from django.conf import settings
 
@@ -119,6 +119,24 @@ class ListUserCompaniesView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+class RetrieveUserCompanyView(RetrieveAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanyListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Retrieve the company object
+        company = super().get_object()
+
+        # Ensure the authenticated user is the owner of the company
+        if company.owner != self.request.user:
+            raise PermissionDenied(
+                {"error": "You do not have permission to view this company."}
+            )
+
+        return company
+
+
 # View to update the company record (only number_of_employees)
 class UpdateCompanyView(UpdateAPIView):
     queryset = Company.objects.all()
@@ -129,7 +147,9 @@ class UpdateCompanyView(UpdateAPIView):
         # Ensure the user can only update their own company
         company = super().get_object()
         if company.owner != self.request.user:
-            raise PermissionDenied("You do not have permission to update this company.")
+            raise PermissionDenied(
+                {"error": "You do not have permission to update this company."}
+            )
         return company
 
     def patch(self, request, *args, **kwargs):
