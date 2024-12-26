@@ -81,13 +81,18 @@ class CreateCompanyView(CreateAPIView):
         )
 
         # Send email notification
-        send_mail(
-            subject="New Company Created",
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email] if user.email else [settings.DEFAULT_TO_EMAIL],
-            html_message=message,
-        )
+        try:
+            send_mail(
+                subject="New Company Created",
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=(
+                    [user.email] if user.email else [settings.DEFAULT_TO_EMAIL]
+                ),
+                html_message=message,
+            )
+        except Exception as e:
+            raise ValidationError({"error": f"Failed to send email: {str(e)}"})
 
 
 class CompanyPagination(PageNumberPagination):
