@@ -10,7 +10,7 @@ from django.conf import settings
 
 from company.models import Company
 from .serializers import CompanyListSerializer, CompanyUpdateSerializer
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
@@ -209,12 +209,10 @@ class UpdateCompanyView(UpdateAPIView):
     A view for updating the number of employees in a company record.
 
     Attributes:
-        queryset (QuerySet): The base queryset for company records.
         serializer_class (CompanyUpdateSerializer): The serializer used for partial updates.
         permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
-    queryset = Company.objects.all()
     serializer_class = CompanyUpdateSerializer
     permission_classes = [IsAuthenticated]
 
@@ -224,13 +222,19 @@ class UpdateCompanyView(UpdateAPIView):
 
         Raises:
             PermissionDenied: If the authenticated user does not own the company.
+            NotFound: If the company record does not exist.
 
         Returns:
             Company: The company object owned by the authenticated user.
         """
 
+        # Try to fetch company by ID
+        try:
+            company = Company.objects.get(id=self.kwargs["pk"])
+        except Company.DoesNotExist:
+            raise NotFound({"error": "Company not found."})
+
         # Ensure the user can only update their own company
-        company = super().get_object()
         if company.owner != self.request.user:
             raise PermissionDenied(
                 {"error": "You do not have permission to update this company."}
@@ -263,11 +267,19 @@ class UpdateCompanyView(UpdateAPIView):
             )
 
         # Validate if the request contains only the allowed field 'number_of_employees'
-        if set(request.data.keys()) != {"number_of_employees"}:
+        if "number_of_employees" not in request.data:
             return Response(
                 {"error": "Only 'number_of_employees' field can be updated."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Perform partial update on the database relation
-        return super().patch(request, *args, **kwargs)
+        super().patch(request, *args, **kwargs)
+
+        # Return success message
+        return Response(
+            {
+                "message": "Company updated successfully.",
+            },
+            status=status.HTTP_200_OK,
+        )
