@@ -15,14 +15,6 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 
-# Test API view used for checking authentication
-class ProtectedView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response({"message": "You are authenticated!"})
-
-
 class CreateCompanyView(CreateAPIView):
     """
     A view for creating a new company with user-specific constraints and sending a notification.
