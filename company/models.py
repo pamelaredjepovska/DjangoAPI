@@ -4,6 +4,22 @@ from django.core.exceptions import PermissionDenied
 
 
 class Company(models.Model):
+    """
+    A model representing a company with its details.
+
+    Attributes:
+        id (AutoField): The primary key for the company.
+        company_name (CharField): The name of the company.
+        description (TextField): A detailed description of the company.
+        number_of_employees (PositiveIntegerField): The number of employees in the company.
+        owner (ForeignKey): A reference to the User model, indicating the owner of the company.
+
+    Methods:
+        __str__(): Returns the company name as a string representation of the object.
+        delete(*args, **kwargs): (Commented-out) Prevents the deletion of company records through the ORM.
+        delete_objects(*args, **kwargs): (Commented-out) Prevents the bulk deletion of company records.
+    """
+
     id = models.AutoField(primary_key=True)
     company_name = models.CharField(max_length=255)
     description = models.TextField()
