@@ -12,11 +12,6 @@ class Company(models.Model):
         description (TextField): A detailed description of the company.
         number_of_employees (PositiveIntegerField): The number of employees in the company.
         owner (ForeignKey): A reference to the User model, indicating the owner of the company.
-
-    Methods:
-        __str__(): Returns the company name as a string representation of the object.
-        delete(*args, **kwargs): (Commented-out) Prevents the deletion of company records through the ORM.
-        delete_objects(*args, **kwargs): (Commented-out) Prevents the bulk deletion of company records.
     """
 
     id = models.AutoField(primary_key=True)
@@ -26,12 +21,20 @@ class Company(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="companies")
 
     def __str__(self):
+        """
+        Return company name as string representation
+        """
         return self.company_name
 
-    # Prevent record deletion through ORM
     # def delete(self, *args, **kwargs):
+    #     """
+    #     Prevents the deletion of company records through the ORM.
+    #     """
     #     raise PermissionDenied("Deleting company records is not allowed.")
 
     # @classmethod
     # def delete_objects(cls, *args, **kwargs):
+    #     """
+    #     Prevents the bulk deletion of company records.
+    #     """
     #     raise PermissionDenied("Bulk deletion of company records is not allowed.")

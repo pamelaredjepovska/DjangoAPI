@@ -22,8 +22,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
 
     Meta:
         model (Model): The Company model being serialized.
-        fields (list): Specifies the fields 'company_name', 'description', and
-                       'number_of_employees' to be included in the serialized output.
+        fields (list): Specifies the fields to be included in the serialized output.
     """
 
     class Meta:
@@ -37,7 +36,7 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
 
     Meta:
         model (Model): The Company model being serialized.
-        fields (list): Specifies that only the 'number_of_employees' field can be updated.
+        fields (list): Specifies the fields that can be updated.
     """
 
     class Meta:

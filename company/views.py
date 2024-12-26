@@ -17,22 +17,11 @@ from django.template.loader import render_to_string
 
 class CreateCompanyView(CreateAPIView):
     """
-    A view for creating a new company with user-specific constraints and sending a notification.
+    A view for creating a new company, validating content, and notifying the user via email.
 
     Attributes:
-        serializer_class (CompanyListSerializer): The serializer used for company creation.
-        permission_classes (list): Permissions required to access this view,
-                                   restricted to authenticated users.
-
-    Methods:
-        post(request, *args, **kwargs): Handles the POST request for creating a company,
-                                        validating content type and request data.
-        perform_create(serializer): Custom logic to limit the number of companies a user can create
-                                    and send email notifications upon successful creation.
-
-    Raises:
-        ValidationError: If the user has already created the maximum allowed number of companies
-                         (5) or if any validation errors occur.
+        serializer_class (CompanyListSerializer): Serializer for company creation.
+        permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
     serializer_class = CompanyListSerializer
@@ -40,7 +29,7 @@ class CreateCompanyView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         """
-        Validates the request's content type and body before delegating to the parent method.
+        Validate the request before processing it.
 
         Args:
             request (Request): The HTTP request object.
@@ -70,7 +59,7 @@ class CreateCompanyView(CreateAPIView):
         Performs additional checks and actions during the company creation process.
 
         Args:
-            serializer (Serializer): The serializer instance containing validated data.
+            serializer (Serializer): The validated serializer data.
 
         Raises:
             ValidationError: If the user exceeds the limit of 5 companies.
@@ -118,31 +107,20 @@ class CompanyPagination(PageNumberPagination):
 
 class ListUserCompaniesView(APIView):
     """
-    A view for listing all companies owned by the authenticated user with optional ordering and pagination.
+    A view for listing all companies owned by the authenticated user with pagination and optional ordering.
 
     Attributes:
-        permission_classes (list): Permissions required to access this view,
-                                   restricted to authenticated users.
-
-    Methods:
-        get(request, *args, **kwargs): Retrieves the list of companies owned by the user,
-                                       supports ordering, and returns a paginated response.
-
-    Raises:
-        ValidationError: If an invalid ordering field is provided.
+        permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         """
-        Handles the GET request to retrieve companies owned by the authenticated user.
+        Retrieves the list of companies, supports sorting and pagination.
 
         Args:
             request (Request): The HTTP request object.
-
-        Raises:
-            ValidationError: If the ordering field is invalid.
 
         Returns:
             Response: A paginated response containing the serialized company data.
@@ -186,19 +164,12 @@ class ListUserCompaniesView(APIView):
 
 class RetrieveUserCompanyView(RetrieveAPIView):
     """
-    A view for retrieving a specific company owned by the authenticated user.
+    A view to retrieve a specific company record owned by the authenticated user.
 
     Attributes:
-        queryset (QuerySet): The base queryset to retrieve company objects.
-        serializer_class (CompanyListSerializer): The serializer used for retrieving company details.
-        permission_classes (list): Permissions required to access this view,
-                                   restricted to authenticated users.
-
-    Methods:
-        get_object(): Retrieves the company object and ensures the authenticated user is its owner.
-
-    Raises:
-        PermissionDenied: If the authenticated user is not the owner of the company.
+        queryset (QuerySet): The base queryset for company records.
+        serializer_class (CompanyListSerializer): Serializer used for retrieving company details.
+        permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
     queryset = Company.objects.all()
@@ -233,18 +204,9 @@ class UpdateCompanyView(UpdateAPIView):
     A view for updating the number of employees in a company record.
 
     Attributes:
-        queryset (QuerySet): The base queryset to retrieve company objects.
-        serializer_class (CompanyUpdateSerializer): The serializer used for updating company details.
-        permission_classes (list): Permissions required to access this view,
-                                   restricted to authenticated users.
-
-    Methods:
-        get_object(): Ensures the authenticated user is the owner of the company.
-        patch(request, *args, **kwargs): Handles the PATCH request to update the company
-                                         while enforcing validation rules.
-
-    Raises:
-        PermissionDenied: If the authenticated user is not the owner of the company.
+        queryset (QuerySet): The base queryset for company records.
+        serializer_class (CompanyUpdateSerializer): The serializer used for partial updates.
+        permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
     queryset = Company.objects.all()
@@ -273,7 +235,7 @@ class UpdateCompanyView(UpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         """
-        Handles the PATCH request to update the company's 'number_of_employees' field.
+        Handles the PATCH request to update the company's employee count.
 
         Args:
             request (Request): The HTTP request object.
