@@ -176,6 +176,7 @@ class RetrieveUserCompanyView(RetrieveAPIView):
         permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
+    queryset = Company.objects.none()
     serializer_class = CompanyListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -214,6 +215,7 @@ class UpdateCompanyView(UpdateAPIView):
         permission_classes (list): Permissions to access the view (authenticated users only).
     """
 
+    queryset = Company.objects.none()
     serializer_class = CompanyUpdateSerializer
     permission_classes = [IsAuthenticated]
 
