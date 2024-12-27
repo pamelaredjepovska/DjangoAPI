@@ -44,10 +44,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.admindocs", 
+    "django.contrib.admindocs",
     "company",
     "rest_framework",
     "rest_framework.authtoken",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -172,3 +173,17 @@ if not env("DEV_ENV", default=True):
     EMAIL_USE_TLS = env("EMAIL_USE_TLS", default=True)
     EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+
+# Swagger settings
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Authorization header using the Bearer scheme.",
+        }
+    },
+    "USE_SESSION_AUTH": False,
+    "DEFAULT_MODEL_RENDERING": "example",
+}
