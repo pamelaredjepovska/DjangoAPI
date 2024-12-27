@@ -13,6 +13,8 @@ from .serializers import CompanyListSerializer, CompanyUpdateSerializer
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class CreateCompanyView(CreateAPIView):
@@ -27,6 +29,14 @@ class CreateCompanyView(CreateAPIView):
     serializer_class = CompanyListSerializer
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="A view for creating a new company, validating content, and notifying the user via email.",
+        request_body=CompanyListSerializer,
+        responses={
+            201: "Company created successfully.",
+            400: "Validation error or request issues.",
+        },
+    )
     def post(self, request, *args, **kwargs):
         """
         Validate the request before processing it.
@@ -120,6 +130,28 @@ class ListUserCompaniesView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    # Define parameters for Swagger (APIView doesn't expose them)
+    @swagger_auto_schema(
+        operation_description="A view for listing all companies owned by the authenticated user with pagination and optional ordering.",
+        manual_parameters=[
+            openapi.Parameter(
+                name="page_size",
+                in_=openapi.IN_QUERY,
+                description="Number of results per page.",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                name="ordering",
+                in_=openapi.IN_QUERY,
+                description="Field to order by (e.g., 'company_name', '-company_name').",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+        responses={
+            200: "Paginated list of companies.",
+            400: "Invalid ordering field or request issues.",
+        },
+    )
     def get(self, request, *args, **kwargs):
         """
         Retrieves the list of companies, supports sorting and pagination.
@@ -180,30 +212,30 @@ class RetrieveUserCompanyView(RetrieveAPIView):
     serializer_class = CompanyListSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
+    @swagger_auto_schema(
+        operation_description="A view to retrieve a specific company record owned by the authenticated user.",
+        responses={
+            200: "Company details retrieved successfully.",
+            404: "We couldn’t find the company, or it’s not associated with your account.",
+        },
+    )
+    def get(self, request, *args, **kwargs):
         """
-        Retrieves the specific company object and validates ownership.
-
-        Raises:
-            PermissionDenied: If the authenticated user does not own the company.
-
-        Returns:
-            Company: The company object owned by the authenticated user.
+        Retrieve the company record owned by the user.
         """
-
-        # Try to fetch company by ID
         try:
-            company = Company.objects.get(id=self.kwargs["pk"])
+            company = Company.objects.get(id=self.kwargs["pk"], owner=request.user)
         except Company.DoesNotExist:
-            raise NotFound({"error": "Company not found."})
-
-        # Ensure the authenticated user is the owner of the company
-        if company.owner != self.request.user:
-            raise PermissionDenied(
-                {"error": "You do not have permission to view this company."}
+            raise NotFound(
+                {
+                    "error": "We couldn’t find the company, or it’s not associated with your account."
+                }
             )
 
-        return company
+        # If company is found and belongs to the user, return the response
+        serializer = self.get_serializer(company)
+
+        return Response(serializer.data)
 
 
 class UpdateCompanyView(UpdateAPIView):
@@ -218,6 +250,7 @@ class UpdateCompanyView(UpdateAPIView):
     queryset = Company.objects.none()
     serializer_class = CompanyUpdateSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ["patch"]  # Allow only PATCH method
 
     def get_object(self):
         """
@@ -245,6 +278,16 @@ class UpdateCompanyView(UpdateAPIView):
 
         return company
 
+    @swagger_auto_schema(
+        operation_description="Partially update the number of employees in a company record.",
+        request_body=CompanyUpdateSerializer,
+        responses={
+            200: "Company updated successfully.",
+            400: "Invalid request body or data.",
+            403: "Permission denied.",
+            404: "Company not found.",
+        },
+    )
     def patch(self, request, *args, **kwargs):
         """
         Handles the PATCH request to update the company's employee count.
