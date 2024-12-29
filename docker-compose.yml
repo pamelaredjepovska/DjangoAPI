@@ -1,0 +1,39 @@
+services:
+  database:
+    image: postgres:13
+    container_name: docker-djangodb
+    restart: always
+    environment:
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+      POSTGRES_DB: $DB_NAME
+    ports:
+      - "5433:$DB_PORT"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      # - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data/
+
+  app:
+    build: .
+    container_name: docker-djangoapi
+    command: bash -c "python3 manage.py makemigrations && 
+                      python3 manage.py migrate && 
+                      python3 manage.py runscript postgresql.init &&
+                      python3 manage.py runserver $TEST_HOST:$TEST_PORT"
+    volumes:
+      - .:/django_app
+    ports:
+      - "$TEST_PORT:$TEST_PORT"
+    env_file: 
+      - .env 
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
