@@ -58,11 +58,12 @@ Here's how:
 3. Get Credentials: Copy the SMTP settings (Host, Port, Username, Password) from your inbox.
 4. Configure: Update your .env file:
     ```EMAIL_HOST=smtp.mailtrap.io
-    EMAIL_PORT=2525
+    EMAIL_PORT=your_mailtrap_port
     EMAIL_HOST_USER=your_mailtrap_username
     EMAIL_HOST_PASSWORD=your_mailtrap_password
     EMAIL_USE_TLS=True```
 5.  Test Emails: Trigger email functionality and check the inbox for results.
+
 **_Note_**: Use MailTrap only for development and testing, not in production.
 
 ## Swagger UI
